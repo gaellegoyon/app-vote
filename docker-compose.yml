@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: voteapp-db
+    environment:
+      POSTGRES_USER: vote
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: voteapp
+    ports:
+      - "5432:5432"            # accès local (prisma, psql)
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vote -d voteapp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: voteapp-mailhog
+    ports:
+      - "1025:1025"            # SMTP (Nodemailer)
+      - "8025:8025"            # UI web http://localhost:8025
+
+  redis:
+    image: redis:7-alpine
+    container_name: voteapp-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  db_data:

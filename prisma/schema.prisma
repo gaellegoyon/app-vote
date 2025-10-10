@@ -1,0 +1,53 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Voter {
+    id        String    @id @default(cuid())
+    email     String    @unique
+    pwdHash   String?
+    invitedAt DateTime?
+    votedAt   DateTime?
+    createdAt DateTime  @default(now())
+}
+
+model Candidate {
+    id        String   @id @default(cuid())
+    name      String
+    slogan    String?
+    program   String?
+    validated Boolean  @default(false)
+    createdAt DateTime @default(now())
+}
+
+model Election {
+    id        String   @id @default(cuid())
+    title     String
+    round     Int
+    opensAt   DateTime
+    closesAt  DateTime
+    parentId  String?
+    createdAt DateTime @default(now())
+}
+
+model Ballot {
+    id          String   @id @default(cuid())
+    electionId  String
+    candidateId String
+    voterPseudo String // HMAC(email, secret)
+    payloadEnc  Bytes
+    createdAt   DateTime @default(now())
+}
+
+model EventLog {
+    id    String   @id @default(cuid())
+    type  String
+    actor String?
+    meta  Json?
+    ts    DateTime @default(now())
+}
