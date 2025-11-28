@@ -84,17 +84,16 @@ export async function POST(req: NextRequest) {
     const pseudo = hmacPseudo(voter.email);
     const payloadEnc = Buffer.alloc(32);
 
-    await prisma.$transaction(async (tx) => {
-      await tx.ballot.create({
+    await prisma.$transaction([
+      prisma.ballot.create({
         data: {
           electionId,
           candidateId,
           voterPseudo: pseudo,
           payloadEnc,
         },
-      });
-
-      await tx.electionVoter.update({
+      }),
+      prisma.electionVoter.update({
         where: {
           electionId_voterId: {
             electionId,
@@ -102,8 +101,8 @@ export async function POST(req: NextRequest) {
           },
         },
         data: { votedAt: new Date() },
-      });
-    });
+      }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (_error) {

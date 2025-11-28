@@ -97,14 +97,46 @@ export default async function PublicResultsPage() {
   );
 
   // Trier les résultats par nombre de voix décroissant
-  const sortedResults = counts
-    .map((r: (typeof counts)[0]) => ({
-      candidate: candMap.get(r.candidateid),
-      votes: Number(r.count),
-      candidateId: r.candidateid,
-    }))
-    .filter((r) => r.candidate)
-    .sort((a, b) => b.votes - a.votes);
+  interface CountRow {
+    candidateid: string;
+    count: bigint;
+  }
+
+  type CandidateType = (typeof candidates)[0];
+
+  interface ResultRow {
+    candidate?: CandidateType | undefined;
+    votes: number;
+    candidateId: string;
+  }
+
+  interface SortedResult extends ResultRow {
+    candidate: CandidateType;
+  }
+
+  type CandidateMap = Map<string, CandidateType>;
+
+  const typedCandMap: CandidateMap = candMap as CandidateMap;
+
+  type MapCallback = (r: CountRow) => ResultRow;
+  type FilterPredicate = (r: ResultRow) => r is SortedResult;
+  type SortComparator = (a: SortedResult, b: SortedResult) => number;
+
+  const mapFn: MapCallback = (r) => ({
+    candidate: typedCandMap.get(r.candidateid),
+    votes: Number(r.count),
+    candidateId: r.candidateid,
+  });
+
+  const filterFn: FilterPredicate = (r): r is SortedResult =>
+    Boolean(r.candidate);
+
+  const sortFn: SortComparator = (a, b) => b.votes - a.votes;
+
+  const sortedResults: SortedResult[] = counts
+    .map(mapFn)
+    .filter(filterFn)
+    .sort(sortFn);
 
   const totalVotes = sortedResults.reduce((sum, r) => sum + r.votes, 0);
 
