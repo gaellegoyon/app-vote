@@ -2,8 +2,8 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Installer les dépendances système nécessaires
-RUN apk add --no-cache libc6-compat openssl
+# Installer les dépendances système nécessaires + netcat pour healthcheck
+RUN apk add --no-cache libc6-compat openssl netcat-openbsd
 
 # Copier les fichiers de dépendances
 COPY package.json pnpm-lock.yaml ./
@@ -26,6 +26,9 @@ RUN pnpm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+# Installer netcat pour le script entrypoint
+RUN apk add --no-cache netcat-openbsd postgresql-client
+
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -34,10 +37,16 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
 # Créer le répertoire de logs
 RUN mkdir -p /var/log/vote-app
 RUN chown nextjs:nodejs /var/log/vote-app
+
+# Copier le script d'entrée
+COPY --chown=nextjs:nodejs entrypoint.sh ./
+RUN chmod +x ./entrypoint.sh
 
 # Permissions de sécurité
 USER nextjs
@@ -46,13 +55,7 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV NODE_ENV=production
-
-# Variables d'environnement par défaut
 ENV HOSTNAME="0.0.0.0"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node server.js || exit 1
-
-# Démarrage de l'application
-CMD ["node", "server.js"]
+# Démarrage avec migrations automatiques
+CMD ["./entrypoint.sh"]

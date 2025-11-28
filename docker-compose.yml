@@ -1,83 +1,61 @@
-version: "3.9"
+version: '3.8'
 
 services:
-  # Base de données PostgreSQL sécurisée
-  db:
-    image: postgres:16
-    container_name: voteapp-db
-    environment:
-      POSTGRES_USER: vote
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: voteapp
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vote -d voteapp"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    networks:
-      - vote_network
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
-  # Serveur SMTP pour les tests
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: voteapp-mailhog
-    ports:
-      - "1025:1025"  # SMTP
-      - "8025:8025"  # UI web
-    networks:
-      - vote_network
-    restart: unless-stopped
-
-  # Redis pour cache et sessions
-  redis:
-    image: redis:7-alpine
-    container_name: voteapp-redis
-    command: redis-server --appendonly yes --requirepass redis_password
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - vote_network
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
-  # Application principale
+  # Application Next.js UNIQUEMENT
   app:
-    build: .
-    container_name: voteapp-main
-    environment:
-      DATABASE_URL: "postgresql://vote:secret@db:5432/voteapp"
-      REDIS_URL: "redis://:redis_password@redis:6379"
-      SMTP_HOST: "mailhog"
-      SMTP_PORT: "1025"
-    ports:
-      - "3000:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - vote_network
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voting-app
     restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Connexion à PostgreSQL EXTERNE (VM SERVICES)
+      DATABASE_URL: "postgresql://voting_user:VotingSecurePass2025!@192.168.1.18:5432/voting_app"
+      
+      # URLs publiques
+      NEXT_PUBLIC_APP_URL: "https://vote.rsx103.local"
+      NEXT_PUBLIC_BASE_URL: "https://vote.rsx103.local"
+      
+      # Secrets (seront générés par deploy-dmz.sh)
+      JWT_SECRET: "${JWT_SECRET}"
+      BALLOT_ENCRYPTION_KEY: "${BALLOT_ENCRYPTION_KEY}"
+      HMAC_SECRET: "${HMAC_SECRET}"
+    
+    ports:
+      - "127.0.0.1:3000:3000"  # Localhost uniquement (Nginx en reverse proxy)
+    
     volumes:
       - ./logs:/var/log/vote-app
-    profiles:
-      - production
+    
+    networks:
+      - dmz_network
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
 
-volumes:
-  db_data:
-  redis_data:
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: voting-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - dmz_network
+    depends_on:
+      app:
+        condition: service_healthy
 
 networks:
-  vote_network:
+  dmz_network:
     driver: bridge
