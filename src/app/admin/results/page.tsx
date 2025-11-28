@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { analyzeElectionResults } from "@/lib/election-results";
+
+export const dynamic = "force-dynamic";
+
 import {
   Card,
   CardContent,
@@ -7,15 +11,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Trophy, Users, Vote } from "lucide-react";
+import { Crown, Vote } from "lucide-react";
+import ElectionAlerts from "./ElectionAlerts";
+import ElectionStats from "./ElectionStats";
+import { CANDIDATE_BADGES } from "@/lib/constants/results";
 
 export default async function ResultsPage() {
-  const e = await prisma.election.findFirst({
-    where: { round: 1 },
+  // Récupérer l'élection la plus récente
+  const election = await prisma.election.findFirst({
     orderBy: { createdAt: "desc" },
+    include: {
+      parent: true,
+      childElections: true,
+    },
   });
 
-  if (!e) {
+  if (!election) {
     return (
       <div className="space-y-6">
         <div>
@@ -42,23 +53,7 @@ export default async function ResultsPage() {
     );
   }
 
-  const counts = await prisma.$queryRaw<
-    { candidateid: string; count: bigint }[]
-  >`SELECT "candidateId", COUNT(*)::bigint FROM "Ballot" WHERE "electionId" = ${e.id} GROUP BY "candidateId"`;
-
-  const candidates = await prisma.candidate.findMany();
-  const candMap = new Map(candidates.map((c) => [c.id, c]));
-
-  // Trier les résultats par nombre de voix décroissant
-  const sortedResults = counts
-    .map((r) => ({
-      candidate: candMap.get(r.candidateid),
-      votes: Number(r.count),
-      candidateId: r.candidateid,
-    }))
-    .sort((a, b) => b.votes - a.votes);
-
-  const totalVotes = sortedResults.reduce((sum, r) => sum + r.votes, 0);
+  const analysis = await analyzeElectionResults(election.id);
 
   return (
     <div className="space-y-6">
@@ -67,58 +62,27 @@ export default async function ResultsPage() {
         <h1 className="text-3xl font-bold tracking-tight">
           Résultats des élections
         </h1>
-        <p className="text-muted-foreground">
-          Résultats détaillés pour {e.title}
-        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <p className="text-muted-foreground">
+            Résultats détaillés pour {election.title}
+          </p>
+          {election.round > 1 && (
+            <Badge variant="outline">Tour {election.round}</Badge>
+          )}
+        </div>
       </div>
+
+      {/* Election Status Alerts */}
+      <ElectionAlerts analysis={analysis} electionId={election.id} />
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total des votes
-            </CardTitle>
-            <Vote className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalVotes}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Candidats</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{sortedResults.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Taux de participation
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {totalVotes > 0
-                ? Math.round((totalVotes / candidates.length) * 100)
-                : 0}
-              %
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ElectionStats analysis={analysis} />
 
       {/* Results */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+            <Crown className="h-5 w-5" />
             Classement des candidats
           </CardTitle>
           <CardDescription>
@@ -126,7 +90,7 @@ export default async function ResultsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {sortedResults.length === 0 ? (
+          {analysis.results.length === 0 ? (
             <div className="text-center py-8">
               <Vote className="mx-auto h-12 w-12 text-muted-foreground/50" />
               <h3 className="mt-4 text-lg font-semibold">Aucun vote</h3>
@@ -136,16 +100,17 @@ export default async function ResultsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {sortedResults.map((result, index) => {
-                const percentage =
-                  totalVotes > 0
-                    ? Math.round((result.votes / totalVotes) * 100)
-                    : 0;
-                const isWinner = index === 0 && result.votes > 0;
+              {analysis.results.map((result, index) => {
+                const isWinner = analysis.winners.some(
+                  (w) => w.candidateId === result.candidateId
+                );
+                const isRunoffCandidate = analysis.runoffCandidates?.some(
+                  (r) => r.candidateId === result.candidateId
+                );
 
                 return (
                   <Card
-                    key={result.candidateId}
+                    key={`${result.candidateId}-${index}`}
                     className={`transition-all ${
                       isWinner ? "ring-2 ring-primary" : ""
                     }`}
@@ -160,19 +125,44 @@ export default async function ResultsPage() {
                                 : "bg-muted text-muted-foreground"
                             }`}
                           >
-                            {index + 1}
+                            {result.rank}
                           </div>
 
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-medium">
-                                {result.candidate?.name ||
-                                  `Candidat ${result.candidateId}`}
+                                {result.candidate?.name || "Candidat supprimé"}
                               </span>
-                              {isWinner && (
-                                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                                  <Trophy className="mr-1 h-3 w-3" />
-                                  Gagnant
+
+                              {isWinner &&
+                                (analysis.hasAbsoluteMajority ||
+                                  analysis.numberOfElected > 1) && (
+                                  <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                    <Crown className="mr-1 h-3 w-3" />
+                                    {CANDIDATE_BADGES.ELECTED}
+                                  </Badge>
+                                )}
+
+                              {isWinner &&
+                                !analysis.hasAbsoluteMajority &&
+                                analysis.numberOfElected === 1 &&
+                                analysis.winners.length === 1 && (
+                                  <Badge variant="outline">
+                                    {CANDIDATE_BADGES.LEADING}
+                                  </Badge>
+                                )}
+
+                              {isWinner &&
+                                analysis.winners.length > 1 &&
+                                analysis.numberOfElected === 1 && (
+                                  <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                                    {CANDIDATE_BADGES.TIED}
+                                  </Badge>
+                                )}
+
+                              {isRunoffCandidate && analysis.needsRunoff && (
+                                <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                                  {CANDIDATE_BADGES.QUALIFIED_RUNOFF}
                                 </Badge>
                               )}
                             </div>
@@ -189,7 +179,7 @@ export default async function ResultsPage() {
                             {result.votes}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {percentage}% des voix
+                            {result.percentage.toFixed(1)}% des voix
                           </div>
                         </div>
                       </div>
@@ -198,8 +188,10 @@ export default async function ResultsPage() {
                       <div className="mt-4">
                         <div className="w-full bg-muted rounded-full h-2">
                           <div
-                            className="bg-primary h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${percentage}%` }}
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              isWinner ? "bg-primary" : "bg-muted-foreground/50"
+                            }`}
+                            style={{ width: `${result.percentage}%` }}
                           />
                         </div>
                       </div>
@@ -211,6 +203,46 @@ export default async function ResultsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Election History */}
+      {(election.parent || election.childElections.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Historique des tours</CardTitle>
+            <CardDescription>
+              Suivi des différents tours de cette élection
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {election.parent && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm">
+                    <strong>Tour précédent:</strong> {election.parent.title}
+                  </p>
+                </div>
+              )}
+
+              <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <p className="text-sm">
+                  <strong>Tour actuel:</strong> {election.title} (Tour{" "}
+                  {election.round})
+                </p>
+              </div>
+
+              {election.childElections.map(
+                (child: (typeof election.childElections)[0]) => (
+                  <div key={child.id} className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm">
+                      <strong>Tour suivant:</strong> {child.title}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

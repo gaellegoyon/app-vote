@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import CandidateCard from "@/components/CandidateCard";
 import VoteButton from "@/components/VoteButton";
+import VoteStatusAlert from "@/components/VoteStatusAlert";
 import {
   Card,
   CardContent,
@@ -10,12 +13,21 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Vote, Users, AlertCircle } from "lucide-react";
+import { getOpenElection } from "@/lib/election-utils";
 
 export default async function VotePage() {
-  const election = await prisma.election.findFirst({ where: { round: 1 } });
-  const candidates = await prisma.candidate.findMany({
-    where: { validated: true },
-  });
+  // Récupérer l'élection actuellement ouverte
+  const election = await getOpenElection();
+
+  // Récupérer les candidats validés pour cette élection uniquement
+  const candidates = election
+    ? await prisma.candidate.findMany({
+        where: {
+          validated: true,
+          electionId: election.id,
+        },
+      })
+    : [];
 
   return (
     <div className="space-y-8">
@@ -26,12 +38,17 @@ export default async function VotePage() {
           {election ? "Vote ouvert" : "Vote fermé"}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">
-          {election?.title ?? "Élection des délégués — Tour 1"}
+          {election?.title ?? "Aucune élection ouverte"}
         </h1>
         <p className="text-muted-foreground max-w-[600px] mx-auto">
-          Consultez les candidatures et votez pour vos représentants préférés.
+          {election
+            ? "Consultez les candidatures et votez pour vos représentants préférés."
+            : "Aucune élection n'est actuellement ouverte."}
         </p>
       </div>
+
+      {/* Vote Status Alert */}
+      <VoteStatusAlert />
 
       {!election ? (
         <Alert>
@@ -49,8 +66,7 @@ export default async function VotePage() {
               Candidats ({candidates.length})
             </CardTitle>
             <CardDescription>
-              Voici la liste des candidats validés pour cette élection. Cliquez
-              sur &quot;Voter&quot; pour faire votre choix.
+              Candidats pour l&apos;élection: <strong>{election.title}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -59,22 +75,19 @@ export default async function VotePage() {
                 <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
                 <h3 className="mt-4 text-lg font-semibold">Aucun candidat</h3>
                 <p className="text-muted-foreground">
-                  Aucun candidat validé pour le moment. Revenez plus tard.
+                  Aucun candidat validé pour cette élection. Revenez plus tard.
                 </p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                {candidates.map((c) => (
+                {candidates.map((c: (typeof candidates)[0]) => (
                   <CandidateCard
                     key={c.id}
                     name={c.name}
                     slogan={c.slogan}
                     program={c.program}
                     rightSlot={
-                      <VoteButton
-                        electionId={election?.id ?? ""}
-                        candidateId={c.id}
-                      />
+                      <VoteButton electionId={election.id} candidateId={c.id} />
                     }
                   />
                 ))}

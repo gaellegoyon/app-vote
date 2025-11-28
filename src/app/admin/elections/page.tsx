@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+
+// This admin page relies on database access; render it dynamically at request time
+export const dynamic = "force-dynamic";
 import {
   Card,
   CardContent,
@@ -19,19 +22,49 @@ export default async function AdminElections() {
   async function createRound1(formData: FormData) {
     "use server";
     const title = String(formData.get("title") || "Élection délégués – Tour 1");
+    const numberOfElected = Number(formData.get("numberOfElected") || 1);
     const now = new Date();
-    const closes = new Date(now.getTime() + 1000 * 60 * 60); // +1h demo
+    const closes = new Date(now.getTime() + 1000 * 60 * 60);
     await prisma.election.create({
-      data: { title, round: 1, opensAt: now, closesAt: closes },
+      data: {
+        title,
+        round: 1,
+        numberOfElected,
+        opensAt: now,
+        closesAt: closes,
+      },
     });
+
+    // Revalider la page pour mettre à jour les données
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/admin/elections");
+
+    // Rediriger pour s'assurer de l'actualisation
+    const { redirect } = await import("next/navigation");
+    redirect("/admin/elections");
   }
 
   async function closeElection(id: string) {
     "use server";
-    // ici tu pourrais verrouiller les votes et lancer un décompte
-    await prisma.eventLog.create({
-      data: { type: "ELECTION_CLOSE", meta: { id } },
+    const now = new Date();
+
+    // Fermer l'élection en mettant à jour le closesAt
+    await prisma.election.update({
+      where: { id },
+      data: { closesAt: now },
     });
+
+    // Log de l'événement
+    await prisma.eventLog.create({
+      data: {
+        type: "ELECTION_CLOSE",
+        meta: { id, closedAt: now.toISOString() },
+      },
+    });
+
+    // Rediriger pour mettre à jour l'affichage
+    const { redirect } = await import("next/navigation");
+    redirect("/admin/elections");
   }
 
   const isElectionActive = (election: { opensAt: Date; closesAt: Date }) => {
@@ -73,16 +106,31 @@ export default async function AdminElections() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={createRound1} className="flex gap-3">
-            <Input
-              name="title"
-              placeholder="Titre de l'élection (optionnel)"
-              className="flex-1"
-            />
-            <Button type="submit">
-              <Plus className="mr-2 h-4 w-4" />
-              Créer et ouvrir Tour 1
-            </Button>
+          <form action={createRound1} className="space-y-4">
+            <div className="flex gap-3">
+              <Input
+                name="title"
+                placeholder="Titre de l'élection (optionnel)"
+                className="flex-1"
+              />
+              <Input
+                name="numberOfElected"
+                type="number"
+                min="1"
+                max="20"
+                defaultValue="1"
+                placeholder="Nb élus"
+                className="w-24"
+              />
+              <Button type="submit">
+                <Plus className="mr-2 h-4 w-4" />
+                Créer et ouvrir
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Définissez le nombre de candidats qui seront élus à l&apos;issue
+              de cette élection.
+            </p>
           </form>
         </CardContent>
       </Card>
@@ -110,7 +158,7 @@ export default async function AdminElections() {
             </div>
           ) : (
             <div className="space-y-4">
-              {elections.map((e) => {
+              {elections.map((e: (typeof elections)[0]) => {
                 const { status, variant } = getElectionStatus(e);
                 return (
                   <Card key={e.id} className="transition-all hover:shadow-md">
@@ -122,6 +170,10 @@ export default async function AdminElections() {
                             <span className="font-medium">{e.title}</span>
                             <Badge variant={variant}>{status}</Badge>
                             <Badge variant="outline">Tour {e.round}</Badge>
+                            <Badge variant="secondary">
+                              {e.numberOfElected} élu
+                              {e.numberOfElected > 1 ? "s" : ""}
+                            </Badge>
                           </div>
 
                           <div className="text-sm text-muted-foreground space-y-1">

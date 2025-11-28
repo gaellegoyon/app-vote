@@ -2,7 +2,8 @@
 
 import { useTransition, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Vote, Check, X } from "lucide-react";
+import { Vote, Check, X, CheckCircle } from "lucide-react";
+import { useVoteStatus } from "@/hooks/useVoteStatus";
 
 export default function VoteButton({
   candidateId,
@@ -13,6 +14,7 @@ export default function VoteButton({
 }) {
   const [pending, start] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const { status: voteStatus, loading: statusLoading } = useVoteStatus();
 
   async function cast() {
     setStatus("idle");
@@ -26,6 +28,21 @@ export default function VoteButton({
 
     // Reset status after 3 seconds
     setTimeout(() => setStatus("idle"), 3000);
+  }
+
+  // Si le votant a déjà voté, afficher un état différent
+  if (!statusLoading && voteStatus?.hasVoted) {
+    return (
+      <Button
+        disabled
+        variant="outline"
+        size="sm"
+        className="min-w-[100px] text-green-600 border-green-600"
+      >
+        <CheckCircle className="mr-2 h-4 w-4" />
+        Déjà voté
+      </Button>
+    );
   }
 
   const getButtonContent = () => {
@@ -72,7 +89,7 @@ export default function VoteButton({
 
   return (
     <Button
-      disabled={pending || status === "success"}
+      disabled={pending || status === "success" || statusLoading}
       onClick={() => start(cast)}
       variant={getButtonVariant()}
       size="sm"

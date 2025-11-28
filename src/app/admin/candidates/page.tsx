@@ -1,148 +1,48 @@
 import { prisma } from "@/lib/prisma";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Users, Check, Clock, User } from "lucide-react";
+
+// This admin page needs live DB access; force dynamic rendering to avoid build-time DB calls
+export const dynamic = "force-dynamic";
+import { getActiveElection } from "@/lib/election-utils";
+import AdminCandidatesClient from "./AdminCandidatesClient";
 
 export default async function AdminCandidates() {
+  const activeElection = await getActiveElection();
+  if (!activeElection) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Gestion des candidatures
+          </h1>
+          <p className="text-muted-foreground">
+            Aucune élection disponible pour gérer les candidatures.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const list = await prisma.candidate.findMany({
+    where: { electionId: activeElection.id },
     orderBy: { createdAt: "desc" },
   });
-
-  async function validate(id: string) {
-    "use server";
-    await prisma.candidate.update({ where: { id }, data: { validated: true } });
-  }
-
-  const pendingCount = list.filter((c) => !c.validated).length;
-  const validatedCount = list.filter((c) => c.validated).length;
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           Gestion des candidatures
         </h1>
         <p className="text-muted-foreground">
-          Validez et gérez les candidatures soumises par les étudiants.
+          Candidatures pour l&apos;élection:{" "}
+          <strong>{activeElection.title}</strong>
         </p>
       </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{list.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En attente</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {pendingCount}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Validées</CardTitle>
-            <Check className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {validatedCount}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Candidates List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des candidatures</CardTitle>
-          <CardDescription>
-            Cliquez sur &quot;Valider&quot; pour approuver une candidature.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {list.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-semibold">Aucune candidature</h3>
-              <p className="text-muted-foreground">
-                Aucune candidature n&apos;a été soumise pour le moment.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {list.map((c) => (
-                <Card key={c.id} className="transition-all hover:shadow-md">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{c.name}</span>
-                          <Badge
-                            variant={c.validated ? "default" : "secondary"}
-                          >
-                            {c.validated ? "Validé" : "En attente"}
-                          </Badge>
-                        </div>
-
-                        {c.slogan && (
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Slogan:</strong> {c.slogan}
-                          </p>
-                        )}
-
-                        {c.program && (
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Programme:</strong>{" "}
-                            {c.program.length > 100
-                              ? `${c.program.substring(0, 100)}...`
-                              : c.program}
-                          </p>
-                        )}
-
-                        <p className="text-xs text-muted-foreground">
-                          Soumise le{" "}
-                          {new Date(c.createdAt).toLocaleDateString("fr-FR")}
-                        </p>
-                      </div>
-
-                      {!c.validated && (
-                        <form action={validate.bind(null, c.id)}>
-                          <Button size="sm" className="ml-4">
-                            <Check className="mr-2 h-4 w-4" />
-                            Valider
-                          </Button>
-                        </form>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <AdminCandidatesClient
+        initialCandidates={list.map((c: (typeof list)[0]) => ({
+          ...c,
+          createdAt: c.createdAt.toISOString(),
+        }))}
+        electionTitle={activeElection.title}
+      />
     </div>
   );
 }

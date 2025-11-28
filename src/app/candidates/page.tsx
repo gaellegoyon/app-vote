@@ -16,7 +16,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users, Send, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function CandidatesSubmit() {
-  const [form, setForm] = useState({ name: "", program: "", slogan: "" });
+  const [form, setForm] = useState({
+    name: "",
+    program: "",
+    slogan: "",
+  });
   const [ok, setOk] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

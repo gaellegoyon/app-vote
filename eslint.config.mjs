@@ -17,8 +17,29 @@ const eslintConfig = [
       ".next/**",
       "out/**",
       "build/**",
+      ".git/**",
+      "dist/**",
+      "coverage/**",
       "next-env.d.ts",
+      "*.config.js",
+      "*.config.ts",
     ],
+  },
+  {
+    rules: {
+      // Erreurs évitées
+      "@next/next/no-html-link-for-pages": "error",
+      "@next/next/no-img-element": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
   },
 ];
 

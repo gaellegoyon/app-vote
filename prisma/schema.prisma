@@ -1,45 +1,77 @@
-generator client {
-    provider = "prisma-client-js"
-}
-
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
+generator client {
+    provider = "prisma-client-js"
+}
+
 model Voter {
-    id        String    @id @default(cuid())
-    email     String    @unique
-    pwdHash   String?
-    invitedAt DateTime?
-    votedAt   DateTime?
-    createdAt DateTime  @default(now())
+    id             String          @id @default(cuid())
+    email          String          @unique
+    pwdHash        String?
+    invitedAt      DateTime?
+    votedAt        DateTime?
+    createdAt      DateTime        @default(now())
+    isActive       Boolean         @default(false)
+    password       String?
+    electionVoters ElectionVoter[]
+}
+
+model ElectionVoter {
+    id         String    @id @default(cuid())
+    electionId String
+    voterId    String
+    invitedAt  DateTime  @default(now())
+    votedAt    DateTime?
+    election   Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+    voter      Voter     @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+    @@unique([electionId, voterId])
 }
 
 model Candidate {
-    id        String   @id @default(cuid())
-    name      String
-    slogan    String?
-    program   String?
-    validated Boolean  @default(false)
-    createdAt DateTime @default(now())
+    id         String   @id @default(cuid())
+    name       String
+    slogan     String?
+    program    String?
+    validated  Boolean  @default(false)
+    electionId String
+    election   Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+    createdAt  DateTime @default(now())
 }
 
 model Election {
-    id        String   @id @default(cuid())
-    title     String
-    round     Int
-    opensAt   DateTime
-    closesAt  DateTime
-    parentId  String?
-    createdAt DateTime @default(now())
+    id              String          @id @default(cuid())
+    title           String
+    round           Int             @default(1)
+    numberOfElected Int             @default(1) // Nombre d'élus à déterminer
+    opensAt         DateTime
+    closesAt        DateTime
+    parentId        String? // ID de l'élection du tour précédent
+    parent          Election?       @relation("ElectionRounds", fields: [parentId], references: [id])
+    childElections  Election[]      @relation("ElectionRounds")
+    status          ElectionStatus  @default(CREATED)
+    candidates      Candidate[]
+    electionVoters  ElectionVoter[]
+    inviteTokens    InviteToken[]
+    createdAt       DateTime        @default(now())
+}
+
+enum ElectionStatus {
+    CREATED // Élection créée mais pas encore ouverte
+    OPEN // Élection en cours
+    CLOSED // Élection fermée, dépouillement en cours
+    COMPLETED // Résultats finalisés
+    RUNOFF_REQUIRED // Second tour nécessaire
 }
 
 model Ballot {
     id          String   @id @default(cuid())
     electionId  String
     candidateId String
-    voterPseudo String // HMAC(email, secret)
+    voterPseudo String
     payloadEnc  Bytes
     createdAt   DateTime @default(now())
 }
@@ -50,4 +82,26 @@ model EventLog {
     actor String?
     meta  Json?
     ts    DateTime @default(now())
+}
+
+model AdminUser {
+    id         String   @id @default(cuid())
+    email      String   @unique
+    pwdHash    String
+    role       String   @default("admin")
+    totpSecret String?
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}
+
+model InviteToken {
+    id                String   @id @default(cuid())
+    email             String
+    electionId        String
+    election          Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+    jti               String   @unique
+    used              Boolean  @default(false)
+    expiresAt         DateTime
+    createdAt         DateTime @default(now())
+    temporaryPassword String?
 }

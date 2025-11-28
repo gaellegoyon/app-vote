@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, BarChart3, Users, Settings, TrendingUp } from "lucide-react";
+import {
+  Shield,
+  BarChart3,
+  Users,
+  Settings,
+  TrendingUp,
+  FileText,
+  Mail,
+} from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -27,6 +35,18 @@ export default function AdminLayout({
             <Link href="/admin" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            asChild
+          >
+            <Link href="/admin/invitations" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Invitations
             </Link>
           </Button>
 
@@ -63,6 +83,18 @@ export default function AdminLayout({
             <Link href="/admin/results" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Résultats
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            asChild
+          >
+            <Link href="/admin/logs" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Logs sécurité
             </Link>
           </Button>
         </CardContent>
