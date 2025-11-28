@@ -6,8 +6,10 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl netcat-openbsd
 
 # Copier les fichiers de dépendances
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
+COPY package.json package-lock.json* ./
+
+# Installer avec npm
+RUN npm ci || npm install
 
 # Stage de build
 FROM node:20-alpine AS builder
@@ -20,7 +22,7 @@ COPY . .
 RUN npx prisma generate
 
 # Build de l'application
-RUN pnpm run build
+RUN npm run build
 
 # Stage de production
 FROM node:20-alpine AS runner
