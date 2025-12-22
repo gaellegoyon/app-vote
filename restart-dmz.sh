@@ -5,50 +5,69 @@ echo "🔄 Redémarrage du déploiement Vote App - DMZ"
 echo "=============================================="
 echo ""
 
+# Vérifier que .env.production existe
+if [ ! -f .env.production ]; then
+    echo "❌ Fichier .env.production non trouvé!"
+    echo "   Lancez d'abord: bash deploy-dmz.sh"
+    exit 1
+fi
+
+# Copier .env.production vers .env pour docker-compose
+cp .env.production .env
+
 # 1. Arrêter les conteneurs existants
 echo "🛑 Arrêt des conteneurs existants..."
 docker-compose down
 
-# 2. Supprimer les images anciennes (optionnel)
-echo "🗑️  Nettoyage..."
-docker-compose rm -f 2>/dev/null || true
-
-# 3. Rebuild l'image de l'app
+# 2. Rebuild l'image de l'app
 echo "🐳 Build Docker..."
 docker-compose build --no-cache app
 
-# 4. Démarrer tous les services
+# 3. Démarrer tous les services
 echo "🚀 Démarrage des services..."
 docker-compose up -d
 
-# 5. Attendre que tout soit prêt
-echo "⏳ Attente de la santé des services (30s)..."
-sleep 30
+# 4. Attendre les services
+echo "⏳ Attente du démarrage des services..."
+max_attempts=60
+attempt=0
 
-# 6. Vérifier l'état
-echo ""
-echo "🏥 Vérification de l'état:"
-echo ""
+# Attendre PostgreSQL
+while ! docker-compose exec -T voting-db pg_isready -U voting_user -d voting_app > /dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ $attempt -ge $max_attempts ]; then
+        echo "❌ PostgreSQL n'a pas démarré"
+        exit 1
+    fi
+    echo "   PostgreSQL: tentative $attempt/$max_attempts..."
+    sleep 1
+done
+echo "✅ PostgreSQL prêt"
 
-echo "📦 Conteneurs en cours d'exécution:"
+# Attendre l'app
+attempt=0
+while ! curl -s http://localhost:3000/api/health > /dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ $attempt -ge $max_attempts ]; then
+        echo "⚠️  App peut ne pas être complètement prête"
+        break
+    fi
+    echo "   App: tentative $attempt/$max_attempts..."
+    sleep 1
+done
+echo "✅ App accessible"
+
+echo ""
+echo "📋 État des conteneurs:"
 docker ps
 
 echo ""
-echo "🔗 Test de connectivité:"
-echo -n "   App (localhost:3000): "
-curl -s http://localhost:3000/api/health > /dev/null && echo "✅ OK" || echo "⏳ En démarrage..."
-
-echo -n "   Nginx (localhost:80): "
-curl -s http://localhost:80 > /dev/null && echo "✅ OK" || echo "⏳ En démarrage..."
-
-echo ""
-echo "📋 Logs récents:"
+echo "� Statut des services:"
 docker-compose logs --tail=15
 
 echo ""
 echo "✅ Redémarrage terminé!"
 echo ""
-echo "💡 Prochaines étapes:"
-echo "   1. Appliquer les migrations: docker-compose exec app pnpm prisma migrate deploy"
-echo "   2. Vérifier les logs: docker-compose logs -f app"
-echo "   3. Test: curl -k https://vote.rsx103.local"
+echo "💡 Prochaines étapes (si première fois):"
+echo "   bash init-db.sh"
+
