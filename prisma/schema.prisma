@@ -87,11 +87,27 @@ model EventLog {
 model AdminUser {
     id         String   @id @default(cuid())
     email      String   @unique
-    pwdHash    String
+    ldapUid    String   @unique // uid dans LDAP (ex: admin1)
     role       String   @default("admin")
     totpSecret String?
+    isActive   Boolean  @default(true)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+    id        String   @id @default(cuid())
+    email     String? // Email de l'utilisateur (null pour actions anonymes)
+    action    String // Action effectuée (login, logout, vote, etc.)
+    resource  String? // Ressource affectée
+    ip        String? // Adresse IP source
+    userAgent String? // User-Agent du navigateur
+    status    String   @default("success") // success, failure, error
+    details   Json? // Données additionnelles
+    timestamp DateTime @default(now())
+
+    @@index([email])
+    @@index([timestamp])
 }
 
 model InviteToken {

@@ -11,14 +11,14 @@ function ipFrom(req: NextRequest) {
 }
 
 function allowed(ip: string) {
-  // Pool VPN 10.0.60.0/24 pour accès admin
-  // En dev, on autorise localhost/127.0.0.1
+  const allowedIps = ["10.10.0.2", "10.10.0.3", "10.10.0.4", "10.10.0.5"];
+
   if (process.env.NODE_ENV === "development") {
     return ip.includes("127.0.0.1") || ip.includes("::1") || ip === "";
   }
-  return ip.startsWith("10.0.60.");
-}
 
+  return allowedIps.includes(ip);
+}
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 

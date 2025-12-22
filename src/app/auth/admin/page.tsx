@@ -13,11 +13,9 @@ import {
   EyeOff,
   Lock,
   Mail,
-  ArrowLeft,
   CheckCircle2,
   Server,
 } from "lucide-react";
-import Link from "next/link";
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
@@ -58,25 +56,12 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
       {/* Background pattern */}
-      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
+      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-800/40 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
 
       <div className="relative flex min-h-screen items-center justify-center p-4">
-        {/* Back to home link */}
-        <div className="absolute top-6 left-6">
-          <Button variant="ghost" size="sm" asChild>
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Accueil
-            </Link>
-          </Button>
-        </div>
-
-        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80 dark:border dark:border-slate-800/50">
           <CardHeader className="text-center pb-8">
             {/* Logo et animation */}
             <div className="flex justify-center mb-6">
@@ -88,7 +73,7 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
               Administration RSX103
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -98,9 +83,9 @@ export default function AdminLogin() {
 
           <CardContent className="space-y-6">
             {/* Security notice */}
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <Server className="h-5 w-5 text-blue-600" />
+                <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div className="text-sm">
                   <p className="font-medium text-blue-900 dark:text-blue-200">
                     Accès VPN requis
@@ -116,7 +101,7 @@ export default function AdminLogin() {
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
-                  className="text-sm font-medium flex items-center gap-2"
+                  className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-100"
                 >
                   <Mail className="h-4 w-4" />
                   Email administrateur
@@ -130,14 +115,14 @@ export default function AdminLogin() {
                   }
                   required
                   placeholder="admin@esna.fr"
-                  className="h-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="h-12 bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label
                   htmlFor="password"
-                  className="text-sm font-medium flex items-center gap-2"
+                  className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-100"
                 >
                   <Lock className="h-4 w-4" />
                   Mot de passe
@@ -155,7 +140,7 @@ export default function AdminLogin() {
                     }
                     required
                     placeholder="••••••••••"
-                    className="h-12 pr-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="h-12 pr-12 bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <Button
                     type="button"
@@ -165,27 +150,26 @@ export default function AdminLogin() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     )}
                   </Button>
                 </div>
               </div>
 
               {error && (
-                <Alert
-                  variant="destructive"
-                  className="border-red-200 bg-red-50 dark:bg-red-950/30"
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert className="border-red-300 dark:border-red-800/50 bg-red-50 dark:bg-red-950/30">
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <AlertDescription className="text-red-800 dark:text-red-100">
+                    {error}
+                  </AlertDescription>
                 </Alert>
               )}
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg dark:shadow-lg dark:shadow-purple-500/20"
                 disabled={loading}
               >
                 {loading ? (
@@ -203,13 +187,13 @@ export default function AdminLogin() {
             </form>
 
             {/* Footer info */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-6 border-t border-gray-200 dark:border-slate-700">
               <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="flex items-center gap-2 text-green-600">
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>Chiffrement AES-256</span>
                 </div>
-                <div className="flex items-center gap-2 text-green-600">
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>MFA sécurisé</span>
                 </div>

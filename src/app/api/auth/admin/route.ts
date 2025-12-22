@@ -1,32 +1,43 @@
-
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/security-node";
-import argon2 from "argon2";
+import { authenticateWithLDAP } from "@/lib/ldap";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email and password required" },
+        { status: 400 }
+      );
     }
 
+    // Extraire le uid du email (avant @)
+    const uid = email.split("@")[0];
+
+    // 1️⃣ Authentifier via LDAP
+    try {
+      await authenticateWithLDAP(uid, password);
+    } catch (ldapError) {
+      console.error("LDAP auth failed:", ldapError);
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // 2️⃣ Vérifier que l'utilisateur est admin en DB
     const admin = await prisma.adminUser.findUnique({
       where: { email },
     });
 
     if (!admin) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
-    try {
-      const isValid = await argon2.verify(admin.pwdHash, password);
-      if (!isValid) {
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-      }
-    } catch (_verifyError) {
-      return NextResponse.json({ error: "Verification error" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Admin access denied" },
+        { status: 403 }
+      );
     }
 
     const token = await signToken(
@@ -46,6 +57,9 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (_error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

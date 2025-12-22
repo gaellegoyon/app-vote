@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Vote, Users, Shield, Home, LogOut, Trophy } from "lucide-react";
+import { Vote, Users, Shield, LogOut, Trophy } from "lucide-react";
 import { useAdminAuth, useVoterAuth } from "@/lib/auth-client";
 import { clearVoterSession, clearAdminSession } from "@/lib/cookies";
 import { useState } from "react";
@@ -63,14 +63,6 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {/* Lien Accueil - toujours visible */}
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Accueil
-            </Link>
-          </Button>
-
           {/* Navigation pour votants authentifiés - seulement si connecté ET pas admin */}
           {!voterLoading && isVoter && !isAdmin && (
             <>

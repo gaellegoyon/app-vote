@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -67,7 +66,7 @@ export async function POST(req: Request) {
     const link = `${baseUrl}/auth/complete?token=${token}`;
 
     await mailer.sendMail({
-      from: process.env.SMTP_FROM || "noreply@vote.local",
+      from: process.env.MAIL_FROM || "noreply@vote.local",
       to: email,
       subject: "Invitation à voter - RSX103",
       html: `

@@ -2,11 +2,11 @@ import nodemailer from "nodemailer";
 import { signToken } from "./security-node";
 
 export const mailer = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "localhost",
-  port: Number(process.env.SMTP_PORT || 1025),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: process.env.SMTP_USER
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  host: process.env.MAIL_HOST || "localhost",
+  port: Number(process.env.MAIL_PORT || 1025),
+  secure: process.env.MAIL_SECURE === "true",
+  auth: process.env.MAIL_USERNAME
+    ? { user: process.env.MAIL_USERNAME, pass: process.env.MAIL_PASSWORD }
     : undefined,
 });
 
@@ -77,7 +77,7 @@ export async function sendVoterInvitation(
   `;
 
   await mailer.sendMail({
-    from: process.env.SMTP_FROM || '"ESNA Vote" <vote@esna.fr>',
+    from: process.env.MAIL_FROM || '"ESNA Vote" <vote@esna.fr>',
     to: email,
     subject: `🗳️ Convocation à voter - ${electionTitle}`,
     html,
