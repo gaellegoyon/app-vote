@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Application Next.js UNIQUEMENT
+  # Application Next.js
   app:
     build:
       context: .
@@ -10,8 +10,8 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      # Connexion à PostgreSQL EXTERNE (VM SERVICES)
-      DATABASE_URL: "postgresql://voting_user:VotingSecurePass2025!@192.168.1.18:5432/voting_app"
+      # Connexion à PostgreSQL via le service Docker local
+      DATABASE_URL: "postgresql://voting_user:VotingSecurePass2025!@voting-db:5432/voting_app"
       
       # URLs publiques
       NEXT_PUBLIC_APP_URL: "https://vote.rsx103.local"
@@ -27,6 +27,10 @@ services:
     
     volumes:
       - ./logs:/var/log/vote-app
+    
+    depends_on:
+      voting-db:
+        condition: service_healthy
     
     networks:
       - dmz_network
@@ -56,6 +60,30 @@ services:
       app:
         condition: service_healthy
 
+  # PostgreSQL Database
+  voting-db:
+    image: postgres:16
+    container_name: voting-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: voting_user
+      POSTGRES_PASSWORD: VotingSecurePass2025!
+      POSTGRES_DB: voting_app
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - voting-db-data:/var/lib/postgresql/data
+    networks:
+      - dmz_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voting_user -d voting_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 networks:
   dmz_network:
     driver: bridge
+
+volumes:
+  voting-db-data:
