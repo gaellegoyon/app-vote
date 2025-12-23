@@ -5,24 +5,30 @@ WORKDIR /app
 # Installer les dépendances système nécessaires + netcat pour healthcheck
 RUN apk add --no-cache libc6-compat openssl netcat-openbsd
 
-# Copier les fichiers de dépendances
-COPY package.json package-lock.json* ./
+# Installer pnpm
+RUN npm install -g pnpm
 
-# Installer avec npm
-RUN npm ci || npm install
+# Copier les fichiers de dépendances
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Installer avec pnpm
+RUN pnpm install --frozen-lockfile
 
 # Stage de build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Installer pnpm
+RUN npm install -g pnpm
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Générer Prisma client
-RUN npx prisma generate
+RUN pnpm prisma generate
 
 # Build de l'application
-RUN npm run build
+RUN pnpm run build
 
 # Stage de production
 FROM node:20-alpine AS runner
