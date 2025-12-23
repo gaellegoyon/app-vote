@@ -34,8 +34,8 @@ RUN pnpm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Installer netcat pour le script entrypoint
-RUN apk add --no-cache netcat-openbsd postgresql-client
+# Installer netcat, postgresql-client et curl pour healthcheck
+RUN apk add --no-cache netcat-openbsd postgresql-client curl
 
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup --system --gid 1001 nodejs
