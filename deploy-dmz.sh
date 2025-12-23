@@ -96,7 +96,7 @@ docker-compose logs --tail=20
 
 echo ""
 echo "✅ DÉPLOIEMENT RÉUSSI!"
-echo "🌐 Test: curl -k https://10.0.0.4"
+echo "🌐 Test: curl -k https://192.168.1.25"
 echo ""
 echo "🔧 Diagnostic PostgreSQL:"
 echo "   Pour vérifier la connectivité à PostgreSQL:"
