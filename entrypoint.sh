@@ -1,8 +1,17 @@
 #!/bin/sh
 set -e
 
-echo "🔄 Attente de PostgreSQL (192.168.1.18:5432)..."
-until nc -z 192.168.1.18 5432; do
+# Extraire le host et le port de DATABASE_URL
+# Format: postgresql://user:pass@host:port/db
+DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
+DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*$/\1/p')
+
+# Valeurs par défaut si extraction échoue
+DB_HOST=${DB_HOST:-voting-db}
+DB_PORT=${DB_PORT:-5432}
+
+echo "🔄 Attente de PostgreSQL ($DB_HOST:$DB_PORT)..."
+until nc -z $DB_HOST $DB_PORT 2>/dev/null; do
   echo "⏳ PostgreSQL non disponible, nouvelle tentative dans 2s..."
   sleep 2
 done
