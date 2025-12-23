@@ -100,20 +100,13 @@ export default function Navbar() {
             </>
           )}
 
-          {/* Boutons de connexion pour utilisateurs non connectés */}
+          {/* Boutons de connexion pour utilisateurs non connectés - SEULEMENT votant */}
           {!voterLoading && !isVoter && !adminLoading && !isAdmin && (
             <>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/auth/login" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Connexion Votant
-                </Link>
-              </Button>
-
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/auth/admin" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Admin
                 </Link>
               </Button>
             </>
