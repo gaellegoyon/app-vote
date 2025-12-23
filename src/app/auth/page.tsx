@@ -159,14 +159,7 @@ export default function AuthChoicePage() {
 
         {/* Footer info */}
         <div className="mt-12 text-center text-xs text-gray-500 dark:text-gray-400">
-          <p>
-            {isViaBastion
-              ? "Vous êtes connecté via le tunnel sécurisé Bastion"
-              : "Accès public - Authentification votant uniquement"}
-          </p>
-          <p className="mt-2">
-            Plateforme de vote sécurisée conforme ANSSI © 2025 RSX103 CNAM
-          </p>
+          <p>Plateforme de vote © 2025 RSX103 CNAM</p>
         </div>
       </div>
     </div>

@@ -74,8 +74,8 @@ export async function middleware(request: NextRequest) {
     const ip = ipFrom(request);
     if (!allowed(ip)) {
       console.warn(`[SECURITY] Admin access blocked from IP: ${ip}`);
-      // Rediriger vers page d'explication au lieu de retourner 403
-      return NextResponse.redirect(new URL("/auth/vpn-required", request.url));
+      // Rediriger vers page d'authentification (votant seulement pour non-VPN)
+      return NextResponse.redirect(new URL("/auth", request.url));
     }
   }
 
