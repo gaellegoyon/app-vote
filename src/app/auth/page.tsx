@@ -127,61 +127,34 @@ export default function AuthChoicePage() {
             </CardContent>
           </Card>
 
-          {/* Option Admin - Seulement via Bastion */}
-          <Card
-            className={`hover:shadow-lg transition-shadow cursor-pointer border-0 ${
-              isViaBastion
-                ? "bg-white/80 backdrop-blur-sm"
-                : "bg-gray-50/80 backdrop-blur-sm opacity-60 pointer-events-none"
-            }`}
-          >
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className={`p-3 rounded-lg ${
-                    isViaBastion
-                      ? "bg-purple-100 dark:bg-purple-900"
-                      : "bg-gray-200 dark:bg-gray-700"
-                  }`}
-                >
-                  <Shield
-                    className={`h-6 w-6 ${
-                      isViaBastion
-                        ? "text-purple-600 dark:text-purple-400"
-                        : "text-gray-600 dark:text-gray-400"
-                    }`}
-                  />
+          {/* Option Admin - COMPLÈTEMENT MASQUÉE si pas via Bastion */}
+          {isViaBastion && (
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
+                    <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <CardTitle>Administration</CardTitle>
                 </div>
-                <CardTitle className={isViaBastion ? "" : "text-gray-500"}>
-                  Administration
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Gérer les élections et consulter les résultats
-              </p>
-              <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                <li>✓ Créer et gérer les élections</li>
-                <li>✓ Inviter les votants</li>
-                <li>✓ Consulter les résultats</li>
-              </ul>
-              {isViaBastion ? (
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Gérer les élections et consulter les résultats
+                </p>
+                <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
+                  <li>✓ Créer et gérer les élections</li>
+                  <li>✓ Inviter les votants</li>
+                  <li>✓ Consulter les résultats</li>
+                </ul>
                 <Link href="/auth/admin" className="block">
                   <Button className="w-full bg-purple-600 hover:bg-purple-700">
                     Connexion Admin
                   </Button>
                 </Link>
-              ) : (
-                <Button
-                  disabled
-                  className="w-full bg-gray-400 cursor-not-allowed"
-                >
-                  🔒 Accès Admin (VPN requis)
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Footer info */}
