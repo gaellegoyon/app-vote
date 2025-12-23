@@ -11,13 +11,40 @@ function ipFrom(req: NextRequest) {
 }
 
 function allowed(ip: string) {
-  const allowedIps = ["10.10.0.2", "10.10.0.3", "10.10.0.4", "10.10.0.5"];
+  // Plages VPN autorisées (adapter selon votre configuration)
+  const allowedIps = [
+    "10.0.0.0/24", // Votre réseau DMZ (10.0.0.x)
+    "10.10.0.0/24", // Ancien réseau (si applicable)
+  ];
 
   if (process.env.NODE_ENV === "development") {
     return ip.includes("127.0.0.1") || ip.includes("::1") || ip === "";
   }
 
-  return allowedIps.includes(ip);
+  // Fonction pour vérifier si une IP est dans une plage CIDR
+  function ipInRange(ip: string, cidr: string) {
+    const [range, bits] = cidr.split("/");
+    const rangeParts = range.split(".").map(Number);
+    const ipParts = ip.split(".").map(Number);
+    const maskBits = parseInt(bits || "32");
+    const maskBytes = Math.floor(maskBits / 8);
+
+    for (let i = 0; i < maskBytes; i++) {
+      if (rangeParts[i] !== ipParts[i]) return false;
+    }
+
+    if (maskBits % 8 !== 0) {
+      const remainingBits = maskBits % 8;
+      const mask = (0xff << (8 - remainingBits)) & 0xff;
+      if ((rangeParts[maskBytes] & mask) !== (ipParts[maskBytes] & mask)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  return allowedIps.some((range) => ipInRange(ip, range));
 }
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
