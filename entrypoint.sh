@@ -19,7 +19,8 @@ done
 echo "✅ PostgreSQL prêt"
 
 echo "🔄 Exécution des migrations Prisma..."
-npx prisma migrate deploy || echo "⚠️ Migrations échouées (peut-être déjà appliquées)"
+# Utiliser le binaire prisma copié depuis le builder
+/app/node_modules/.bin/prisma migrate deploy || echo "⚠️ Migrations échouées (peut-être déjà appliquées)"
 
 echo "🚀 Démarrage de l'application Next.js..."
 exec node server.js
