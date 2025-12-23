@@ -62,12 +62,28 @@ echo "📋 État des conteneurs:"
 docker ps
 
 echo ""
-echo "� Statut des services:"
+echo "⏳ Attente supplémentaire pour que l'app soit vraiment prête..."
+sleep 5
+
+# Attendre que l'app réponde au healthcheck
+echo "🔍 Vérification de la santé de l'app..."
+for i in {1..30}; do
+  if docker-compose exec -T app curl -s -f http://localhost:3000/api/health >/dev/null 2>&1; then
+    echo "✅ App est prête!"
+    break
+  fi
+  echo "⏳ Tentative $i/30..."
+  sleep 1
+done
+
+echo ""
+echo "🌐 État des services:"
 docker-compose logs --tail=15
 
 echo ""
 echo "✅ Redémarrage terminé!"
 echo ""
-echo "💡 Prochaines étapes (si première fois):"
-echo "   bash init-db.sh"
+echo "💡 Test des URLs:"
+echo "   https://rsx103cnam.ddns.net/"
+echo "   https://10.0.0.4/"
 
