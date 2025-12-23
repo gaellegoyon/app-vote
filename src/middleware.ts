@@ -17,6 +17,9 @@ function allowed(ip: string) {
     "10.10.0.3",
     "10.10.0.4",
     "10.10.0.5",
+    // Bastion SSH (interne)
+    "10.0.0.14",
+    "192.168.10.50",
     // Pour le bastion SSH tunnel
     "127.0.0.1",
     "::1",
