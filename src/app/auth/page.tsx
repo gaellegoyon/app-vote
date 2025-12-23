@@ -21,12 +21,27 @@ export default function AuthChoicePage() {
         const data = await response.json();
         const ip = data.ip || "";
 
-        // Si IP est 127.0.0.1 ou localhost, c'est via Bastion/tunnel
+        // Si IP est via Bastion/VPN, afficher les options admin
+        // IPs autorisées pour admin access:
+        // - 127.0.0.1, ::1 = SSH tunnel local
+        // - 10.0.0.14 = Bastion interne (DMZ)
+        // - 192.168.10.50 = Bastion externe
+        // - 10.10.0.x = VPN range
+        const bastionIps = [
+          "127.0.0.1",
+          "::1",
+          "10.0.0.14",
+          "192.168.10.50",
+          "10.10.0.2",
+          "10.10.0.3",
+          "10.10.0.4",
+          "10.10.0.5",
+        ];
+
         const isBastionAccess =
-          ip.includes("127.0.0.1") ||
-          ip.includes("::1") ||
           ip === "" ||
-          ip === "127.0.0.1";
+          bastionIps.includes(ip) ||
+          ip.startsWith("10.10.0."); // VPN range
 
         setIsViaBastion(isBastionAccess);
       } catch (err) {
