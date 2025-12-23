@@ -77,23 +77,13 @@ export default function AuthChoicePage() {
           <p className="text-gray-600 dark:text-gray-400">RSX103 CNAM</p>
         </div>
 
-        {/* Statut d'accès */}
+        {/* Statut d'accès - SEULEMENT si via Bastion */}
         {isViaBastion && (
           <Alert className="mb-6 bg-green-50 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
               ✅ Accès sécurisé via Bastion détecté. Les deux options de
               connexion sont disponibles.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {!isViaBastion && (
-          <Alert className="mb-6 bg-blue-50 border-blue-200">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              Vous accédez en tant que <strong>votant</strong>. Les
-              administrateurs doivent passer par le Bastion sécurisé.
             </AlertDescription>
           </Alert>
         )}
