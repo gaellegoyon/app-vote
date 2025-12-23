@@ -16,17 +16,22 @@ export default function CandidateCard({
   rightSlot,
 }: Props) {
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card className="group border border-border/50 bg-gradient-to-br from-card via-card to-card/50 transition-all duration-300 hover:shadow-lg hover:border-primary/20">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 text-muted-foreground" />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 space-y-3">
+            <CardTitle className="flex items-center gap-2 text-xl text-foreground">
+              <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                <User className="h-5 w-5 text-primary" />
+              </div>
               {name}
             </CardTitle>
             {slogan && (
-              <Badge variant="secondary" className="text-xs">
-                {slogan}
+              <Badge
+                variant="secondary"
+                className="inline-block text-xs font-medium px-3 py-1 bg-primary/5 dark:bg-primary/10 text-primary border border-primary/20"
+              >
+                &ldquo;{slogan}&rdquo;
               </Badge>
             )}
           </div>
@@ -36,11 +41,11 @@ export default function CandidateCard({
 
       {program && (
         <CardContent className="pt-0">
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-muted-foreground">
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">
               Programme
             </h4>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
               {program}
             </p>
           </div>

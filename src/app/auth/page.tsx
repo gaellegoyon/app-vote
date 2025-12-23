@@ -64,25 +64,31 @@ export default function AuthChoicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 p-4">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-800/40 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4">
+      {/* Subtle background elements */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl dark:bg-primary/10"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl dark:bg-accent/10"></div>
+      </div>
 
       <div className="relative max-w-2xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
-            🗳️ Plateforme de Vote
+        <div className="text-center mb-16 pt-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 dark:bg-primary/20 mb-6">
+            <span className="text-3xl">🗳️</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2 tracking-tight">
+            Plateforme de Vote
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">RSX103 CNAM</p>
+          <p className="text-lg text-muted-foreground">RSX103 CNAM</p>
         </div>
 
         {/* Statut d'accès - SEULEMENT si via Bastion */}
         {isViaBastion && (
-          <Alert className="mb-6 bg-green-50 border-green-200">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              ✅ Accès sécurisé via Bastion détecté. Les deux options de
+          <Alert className="mb-8 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <AlertDescription className="text-emerald-700 dark:text-emerald-300">
+              ✓ Accès sécurisé via Bastion détecté. Les deux options de
               connexion sont disponibles.
             </AlertDescription>
           </Alert>
@@ -91,26 +97,36 @@ export default function AuthChoicePage() {
         {/* Choix de connexion */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Option Votant - Toujours visible */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
+          <Card className="group hover:shadow-xl hover:border-primary/30 transition-all duration-300 cursor-pointer border border-border/50 bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
-                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-3 rounded-xl bg-primary/10 dark:bg-primary/20 group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors">
+                  <Users className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Votant</CardTitle>
+                <CardTitle className="text-xl">Votant</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Je participe aux élections en tant que votant ou candidat
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Participez aux élections en tant que votant ou présentez votre
+                candidature
               </p>
-              <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                <li>✓ Voter aux élections</li>
-                <li>✓ Consulter les candidats</li>
-                <li>✓ Voir les résultats</li>
-              </ul>
-              <Link href="/auth/login" className="block">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="text-primary font-semibold">✓</span>
+                  <span>Voter aux élections</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="text-primary font-semibold">✓</span>
+                  <span>Consulter les candidats</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="text-primary font-semibold">✓</span>
+                  <span>Voir les résultats</span>
+                </div>
+              </div>
+              <Link href="/auth/login" className="block pt-2">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
                   Connexion Votant
                 </Button>
               </Link>
@@ -119,26 +135,35 @@ export default function AuthChoicePage() {
 
           {/* Option Admin - COMPLÈTEMENT MASQUÉE si pas via Bastion */}
           {isViaBastion && (
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
+            <Card className="group hover:shadow-xl hover:border-secondary/30 transition-all duration-300 cursor-pointer border border-border/50 bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
-                    <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <div className="p-3 rounded-xl bg-secondary/10 dark:bg-secondary/20 group-hover:bg-secondary/20 dark:group-hover:bg-secondary/30 transition-colors">
+                    <Shield className="h-6 w-6 text-secondary" />
                   </div>
-                  <CardTitle>Administration</CardTitle>
+                  <CardTitle className="text-xl">Administration</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Gérer les élections et consulter les résultats
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Gérez les élections et consultez les résultats détaillés
                 </p>
-                <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                  <li>✓ Créer et gérer les élections</li>
-                  <li>✓ Inviter les votants</li>
-                  <li>✓ Consulter les résultats</li>
-                </ul>
-                <Link href="/auth/admin" className="block">
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-secondary font-semibold">✓</span>
+                    <span>Créer et gérer les élections</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-secondary font-semibold">✓</span>
+                    <span>Inviter les votants</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="text-secondary font-semibold">✓</span>
+                    <span>Consulter les résultats</span>
+                  </div>
+                </div>
+                <Link href="/auth/admin" className="block pt-2">
+                  <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium">
                     Connexion Admin
                   </Button>
                 </Link>
@@ -148,7 +173,7 @@ export default function AuthChoicePage() {
         </div>
 
         {/* Footer info */}
-        <div className="mt-12 text-center text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-16 text-center text-sm text-muted-foreground">
           <p>Plateforme de vote © 2025 RSX103 CNAM</p>
         </div>
       </div>

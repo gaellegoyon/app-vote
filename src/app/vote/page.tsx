@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Vote, Users, AlertCircle } from "lucide-react";
 import { getOpenElection } from "@/lib/election-utils";
 
@@ -32,54 +31,71 @@ export default async function VotePage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium">
-          <Vote className="mr-2 h-4 w-4" />
-          {election ? "Vote ouvert" : "Vote fermé"}
+      <div className="text-center space-y-4 pt-4">
+        <div className="inline-flex items-center rounded-full bg-primary/10 dark:bg-primary/20 px-4 py-2 text-sm font-medium border border-primary/20">
+          <Vote className="mr-2 h-4 w-4 text-primary" />
+          <span className="text-foreground">
+            {election ? "Vote ouvert" : "Vote fermé"}
+          </span>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {election?.title ?? "Aucune élection ouverte"}
-        </h1>
-        <p className="text-muted-foreground max-w-[600px] mx-auto">
-          {election
-            ? "Consultez les candidatures et votez pour vos représentants préférés."
-            : "Aucune élection n'est actuellement ouverte."}
-        </p>
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            {election?.title ?? "Aucune élection ouverte"}
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-[600px] mx-auto leading-relaxed">
+            {election
+              ? "Consultez les candidatures et votez pour vos représentants préférés."
+              : "Aucune élection n'est actuellement ouverte. Revenez plus tard pour participer."}
+          </p>
+        </div>
       </div>
 
       {/* Vote Status Alert */}
       <VoteStatusAlert />
 
       {!election ? (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Aucune élection n&apos;est actuellement ouverte. Revenez plus tard
-            pour participer au vote.
-          </AlertDescription>
-        </Alert>
+        <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card to-card/50 p-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
+            <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Aucune élection disponible
+          </h3>
+          <p className="text-muted-foreground">
+            Revenez plus tard pour participer au vote.
+          </p>
+        </div>
       ) : (
-        <Card>
+        <Card className="border border-border/50 bg-gradient-to-br from-card via-card to-card/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
               Candidats ({candidates.length})
             </CardTitle>
-            <CardDescription>
-              Candidats pour l&apos;élection: <strong>{election.title}</strong>
+            <CardDescription className="text-base">
+              Candidats pour l&apos;élection:{" "}
+              <span className="font-semibold text-foreground">
+                {election.title}
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
             {candidates.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold">Aucun candidat</h3>
-                <p className="text-muted-foreground">
-                  Aucun candidat validé pour cette élection. Revenez plus tard.
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
+                  <Users className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
+                  Aucun candidat validé
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  Les candidatures sont actuellement en attente de validation.
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                 {candidates.map((c: (typeof candidates)[0]) => (
                   <CandidateCard
                     key={c.id}

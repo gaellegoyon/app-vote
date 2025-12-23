@@ -46,27 +46,31 @@ export default function CandidatesSubmit() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium">
-          <Users className="mr-2 h-4 w-4" />
-          Candidature
+      <div className="text-center space-y-4 pt-4">
+        <div className="inline-flex items-center rounded-full bg-primary/10 dark:bg-primary/20 px-4 py-2 text-sm font-medium border border-primary/20">
+          <Users className="mr-2 h-4 w-4 text-primary" />
+          <span className="text-foreground">Candidature</span>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Déposer une candidature
-        </h1>
-        <p className="text-muted-foreground max-w-[600px] mx-auto">
-          Présentez-vous comme délégué de votre promotion. Partagez votre vision
-          et votre programme avec vos camarades.
-        </p>
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            Déposer une candidature
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-[600px] mx-auto leading-relaxed">
+            Présentez-vous comme délégué de votre promotion. Partagez votre
+            vision et votre programme avec vos camarades.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Form */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="border border-border/50 bg-gradient-to-br from-card via-card to-card/50">
             <CardHeader>
-              <CardTitle>Informations de candidature</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-2xl">
+                Informations de candidature
+              </CardTitle>
+              <CardDescription className="text-base">
                 Complétez le formulaire ci-dessous pour soumettre votre
                 candidature
               </CardDescription>
@@ -74,18 +78,24 @@ export default function CandidatesSubmit() {
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nom complet *</Label>
+                  <Label htmlFor="name" className="text-base font-semibold">
+                    Nom complet <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="name"
                     placeholder="Ex: Jean Dupont"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
+                    className="h-11 border-border/50 bg-background/50"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="program">Programme électoral *</Label>
+                  <Label htmlFor="program" className="text-base font-semibold">
+                    Programme électoral{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     id="program"
                     placeholder="Décrivez votre programme, vos idées et propositions pour améliorer la vie étudiante..."
@@ -95,11 +105,14 @@ export default function CandidatesSubmit() {
                     }
                     rows={6}
                     required
+                    className="border-border/50 bg-background/50 resize-none"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slogan">Slogan de campagne</Label>
+                  <Label htmlFor="slogan" className="text-base font-semibold">
+                    Slogan de campagne
+                  </Label>
                   <Input
                     id="slogan"
                     placeholder="Ex: Ensemble pour une promo unie !"
@@ -107,13 +120,18 @@ export default function CandidatesSubmit() {
                     onChange={(e) =>
                       setForm({ ...form, slogan: e.target.value })
                     }
+                    className="h-11 border-border/50 bg-background/50"
                   />
-                  <p className="text-sm text-muted-foreground">
-                    Optionnel - Un slogan accrocheur pour votre campagne
+                  <p className="text-xs text-muted-foreground">
+                    Optionnel — Un slogan accrocheur pour votre campagne
                   </p>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
@@ -132,23 +150,31 @@ export default function CandidatesSubmit() {
                 <Alert
                   className={`mt-4 ${
                     ok === "success"
-                      ? "border-green-200 bg-green-50"
-                      : "border-red-200 bg-red-50"
+                      ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30"
+                      : "border-destructive/50 bg-destructive/5 dark:border-destructive/50"
                   }`}
                 >
                   {ok === "success" ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <CheckCircle
+                      className={`h-4 w-4 ${
+                        ok === "success"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-destructive"
+                      }`}
+                    />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                   <AlertDescription
                     className={
-                      ok === "success" ? "text-green-800" : "text-red-800"
+                      ok === "success"
+                        ? "text-emerald-700 dark:text-emerald-300"
+                        : "text-destructive dark:text-destructive/90"
                     }
                   >
                     {ok === "success"
-                      ? "Candidature envoyée avec succès ! Elle est en attente de validation par l'administration."
-                      : "Une erreur s'est produite lors de l'envoi. Veuillez réessayer."}
+                      ? "✓ Candidature envoyée avec succès ! Elle est en attente de validation par l'administration."
+                      : "✕ Une erreur s'est produite lors de l'envoi. Veuillez réessayer."}
                   </AlertDescription>
                 </Alert>
               )}
@@ -158,56 +184,64 @@ export default function CandidatesSubmit() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <Card>
+          <Card className="border border-border/50 bg-gradient-to-br from-card via-card to-card/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
                 Sécurité
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Cette plateforme est protégée par un WAF et un système de
                 limitation de débit pour garantir la sécurité des données.
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-border/50 bg-gradient-to-br from-card via-card to-card/50">
             <CardHeader>
-              <CardTitle>Processus de validation</CardTitle>
+              <CardTitle className="text-lg">Processus de validation</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-medium">
+            <CardContent className="space-y-4">
+              <div className="flex gap-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20 text-sm font-semibold text-primary">
                   1
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Soumission</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm text-foreground">
+                    Soumission
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Envoi de votre candidature
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-medium">
+              <div className="flex gap-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20 text-sm font-semibold text-primary">
                   2
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Vérification</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm text-foreground">
+                    Vérification
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Validation par l&apos;administration
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-sm font-medium">
+              <div className="flex gap-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20 text-sm font-semibold text-primary">
                   3
                 </div>
-                <div>
-                  <p className="font-medium text-sm">Publication</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm text-foreground">
+                    Publication
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     Affichage sur la plateforme
                   </p>
