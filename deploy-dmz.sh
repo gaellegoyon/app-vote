@@ -23,9 +23,9 @@ HMAC_SECRET=$(openssl rand -base64 32)
 cat > .env.production << EOF
 NODE_ENV=production
 DATABASE_URL="postgresql://voting_user:VotingSecurePass2025!@voting-db:5432/voting_app"
-NEXT_PUBLIC_APP_URL="https://vote.rsx103.local"
-APP_BASE_URL="https://vote.rsx103.local"
-NEXT_PUBLIC_BASE_URL="https://vote.rsx103.local"
+NEXT_PUBLIC_APP_URL="https://rsx103cnam.ddns.net"
+APP_BASE_URL="https://rsx103cnam.ddns.net"
+NEXT_PUBLIC_BASE_URL="https://rsx103cnam.ddns.net"
 JWT_SECRET="$JWT_SECRET"
 BALLOT_ENCRYPTION_KEY="$BALLOT_ENCRYPTION_KEY"
 HMAC_SECRET="$HMAC_SECRET"

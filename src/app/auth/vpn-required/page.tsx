@@ -33,7 +33,7 @@ export default function VpnRequiredPage() {
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2">
               <p className="text-sm font-mono text-gray-700">
-                ssh -L 8443:localhost:443 user@bastion.rsx103.local
+                ssh -L 8443:10.0.0.4:443 gaelle@192.168.10.50
               </p>
               <p className="text-xs text-gray-600">
                 (Remplacez{" "}

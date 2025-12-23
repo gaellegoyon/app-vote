@@ -14,8 +14,8 @@ services:
       DATABASE_URL: "postgresql://voting_user:VotingSecurePass2025!@voting-db:5432/voting_app"
       
       # URLs publiques
-      NEXT_PUBLIC_APP_URL: "https://vote.rsx103.local"
-      NEXT_PUBLIC_BASE_URL: "https://vote.rsx103.local"
+      NEXT_PUBLIC_APP_URL: "https://rsx103cnam.ddns.net"
+      NEXT_PUBLIC_BASE_URL: "https://rsx103cnam.ddns.net"
       
       # Secrets (seront générés par deploy-dmz.sh)
       JWT_SECRET: "${JWT_SECRET}"
