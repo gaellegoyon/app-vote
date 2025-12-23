@@ -61,6 +61,19 @@ export default function AdminLogin() {
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))] dark:bg-grid-slate-800/40 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]"></div>
 
       <div className="relative flex min-h-screen items-center justify-center p-4">
+        {/* Avertissement VPN en production */}
+        {process.env.NODE_ENV === "production" && (
+          <div className="fixed top-4 left-4 right-4 max-w-md mx-auto">
+            <Alert className="bg-amber-50 border-amber-200 text-amber-800">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                ⚠️ <strong>Accès sécurisé via Bastion uniquement.</strong> Cette
+                interface ne doit être accessible que via VPN/SSH tunnel.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80 dark:border dark:border-slate-800/50">
           <CardHeader className="text-center pb-8">
             {/* Logo et animation */}

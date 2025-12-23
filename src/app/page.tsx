@@ -7,45 +7,43 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est admin
-    const checkAdminStatus = async () => {
+    // Vérifier si l'utilisateur est déjà connecté (admin ou votant)
+    const checkExistingSession = async () => {
       try {
-        const response = await fetch("/api/admin/status");
-        if (response.ok) {
-          // Utilisateur admin connecté
+        // Vérifier si l'utilisateur est admin
+        const adminResponse = await fetch("/api/admin/status");
+        if (adminResponse.ok) {
           router.push("/admin");
           return;
         }
       } catch (_error) {
-        console.log("Not admin");
+        // Pas admin, continuer
       }
 
-      // Vérifier si l'utilisateur est votant
       try {
-        const response = await fetch("/api/voter/status");
-        if (response.ok) {
-          // Utilisateur votant connecté
+        // Vérifier si l'utilisateur est votant
+        const voterResponse = await fetch("/api/voter/status");
+        if (voterResponse.ok) {
           router.push("/vote");
           return;
         }
       } catch (_error) {
-        console.log("Not voter");
+        // Pas votant, continuer
       }
 
       // Vérifier si un token est présent dans l'URL (cas d'invitation)
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
       if (token) {
-        // Rediriger vers la page de complétion du compte
         router.push(`/auth/complete?token=${token}`);
         return;
       }
 
-      // Rediriger vers la page de login des votants par défaut
-      router.push("/auth/login");
+      // Rediriger vers la page de choix d'authentification
+      router.push("/auth");
     };
 
-    checkAdminStatus();
+    checkExistingSession();
   }, [router]);
 
   return (

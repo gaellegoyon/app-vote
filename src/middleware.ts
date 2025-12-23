@@ -11,40 +11,39 @@ function ipFrom(req: NextRequest) {
 }
 
 function allowed(ip: string) {
-  const allowedRanges = [
-    { start: "10.0.0.0", end: "10.0.0.255" },
-    { start: "10.10.0.0", end: "10.10.0.255" },
+  // ✅ IPs VPN/Bastion autorisées UNIQUEMENT
+  const allowedIps = [
+    "10.10.0.2",
+    "10.10.0.3",
+    "10.10.0.4",
+    "10.10.0.5",
+    // Pour le bastion SSH tunnel
+    "127.0.0.1",
+    "::1",
   ];
 
   if (process.env.NODE_ENV === "development") {
     return ip.includes("127.0.0.1") || ip.includes("::1") || ip === "";
   }
 
-  // Convertir une adresse IP en nombre
-  function ipToNumber(ip: string): number {
-    const parts = ip.split(".").map(Number);
-    return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
-  }
-
-  const ipNum = ipToNumber(ip);
-
-  return allowedRanges.some(
-    (range) =>
-      ipNum >= ipToNumber(range.start) && ipNum <= ipToNumber(range.end)
-  );
+  // Mode production : strict, IPs whitelist uniquement
+  return allowedIps.includes(ip);
 }
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Pages publiques autorisées (landing page uniquement)
+  // Pages publiques autorisées
   const publicPages = [
     "/",
     "/favicon.ico",
+    "/auth", // Page de choix d'authentification
     "/auth/complete", // Pour les liens d'invitation
     "/auth/login", // Pour la connexion des électeurs
+    "/auth/vpn-required", // Page VPN info
     "/_next", // Assets Next.js
     "/api/auth/complete", // API pour compléter les invitations
     "/api/auth/login", // API pour la connexion des électeurs
+    "/api/debug/ip", // Pour détecter le type d'accès
   ];
 
   // En développement, ajouter les pages admin à la liste publique
@@ -67,13 +66,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/candidates") ||
     pathname.startsWith("/api/vote");
 
-  // 1. Protection VPN pour routes admin (sauf en développement)
+  // 1. Protection VPN pour routes admin (STRICT en production)
   if (isAdminRoute && process.env.NODE_ENV === "production") {
     const ip = ipFrom(request);
     if (!allowed(ip)) {
-      return new NextResponse("Forbidden - Admin access requires VPN", {
-        status: 403,
-      });
+      console.warn(`[SECURITY] Admin access blocked from IP: ${ip}`);
+      // Rediriger vers page d'explication au lieu de retourner 403
+      return NextResponse.redirect(new URL("/auth/vpn-required", request.url));
     }
   }
 
