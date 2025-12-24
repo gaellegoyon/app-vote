@@ -17,6 +17,10 @@ services:
       NEXT_PUBLIC_APP_URL: "https://rsx103cnam.ddns.net"
       NEXT_PUBLIC_BASE_URL: "https://rsx103cnam.ddns.net"
       
+      # LDAP pour authentification admin
+      LDAP_URL: "ldap://192.168.10.18:389"
+      LDAP_BASE_DN: "dc=rsx103,dc=fr"
+      
       # Secrets (seront générés par deploy-dmz.sh)
       JWT_SECRET: "${JWT_SECRET}"
       BALLOT_ENCRYPTION_KEY: "${BALLOT_ENCRYPTION_KEY}"
