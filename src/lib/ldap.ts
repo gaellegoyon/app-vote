@@ -17,9 +17,9 @@ export async function authenticateWithLDAP(
       connectTimeout: 5000,
     });
 
-    // Construire le DN : uid=admin1,ou=users,dc=rsx103,dc=fr
+    // Construire le DN : uid=admin1,dc=rsx103,dc=fr
     const baseDn = process.env.LDAP_BASE_DN || "dc=rsx103,dc=fr";
-    const userDn = `uid=${uid},ou=users,${baseDn}`;
+    const userDn = `uid=${uid},${baseDn}`;
 
     client.bind(userDn, password, (err) => {
       client.unbind();
@@ -53,7 +53,7 @@ export async function checkLDAPUser(uid: string): Promise<boolean> {
     });
 
     const baseDn = process.env.LDAP_BASE_DN || "dc=rsx103,dc=fr";
-    const userDn = `uid=${uid},ou=users,${baseDn}`;
+    const userDn = `uid=${uid},${baseDn}`;
 
     client.search(userDn, { scope: "base" }, (err, res) => {
       if (err) {

@@ -39,9 +39,7 @@ export default function AuthChoicePage() {
         ];
 
         const isBastionAccess =
-          ip === "" ||
-          bastionIps.includes(ip) ||
-          ip.startsWith("10.10.0."); // VPN range
+          ip === "" || bastionIps.includes(ip) || ip.startsWith("10.10.0."); // VPN range
 
         setIsViaBastion(isBastionAccess);
       } catch (err) {
